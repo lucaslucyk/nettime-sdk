@@ -4,14 +4,12 @@ sdk for netTime (SPEC, SA)
 
 ### Import module
 
-
 ```python
 import nettime6 as nt6
-from importlib import reload
 ```
 
-### Client settings
 
+### Client settings
 
 ```python
 URL = 'http://172.18.4.57:6091'
@@ -21,58 +19,38 @@ PWD = 'Spec@1234'
 
 ### Create a client
 
-
 ```python
-reload(nt6)
 client = nt6.Client(url=URL, username=USERNAME, pwd=PWD)
 client.is_connected
 ```
 
-
-
-
     True
 
 
-
 ### Get employees with summary method
-
 
 ```python
 client.get_employees()
 ```
 
-
-
-
     {'total': 1, 'items': [{'id': 8, 'nif': '12345678'}]}
 
 
-
 ### Filter in response (frontend)
-
 
 ```python
 client.get_employees(search="1234")
 ```
 
-
-
-
     {'total': 1, 'items': [{'id': 8, 'nif': '12345678'}]}
 
 
-
 ### Specify fields
-
 
 ```python
 query = nt6.Query(fields=["nif", "Apellidos_Nombre", "Province", "birthdate"])
 client.get_employees(query=query)
 ```
-
-
-
 
     {'total': 1,
      'items': [{'nif': '12345678',
@@ -81,9 +59,7 @@ client.get_employees(query=query)
        'birthdate': '1980-01-04T00:00:00.0000000+01:00'}]}
 
 
-
 ### Filter in backend with nettime filter
-
 
 ```python
 query = nt6.Query(
@@ -93,9 +69,6 @@ query = nt6.Query(
 client.get_employees(query=query)
 ```
 
-
-
-
     {'total': 1,
      'items': [{'nif': '12345678',
        'Apellidos_Nombre': 'Spec, Argentina',
@@ -103,9 +76,7 @@ client.get_employees(query=query)
        'birthdate': '1980-01-04T00:00:00.0000000+01:00'}]}
 
 
-
 ### Fields definition
-
 
 ```python
 fields = client.get_fields("Persona")
@@ -114,10 +85,6 @@ fields.get('items')[:2]
 ```
 
     Total: 416
-    
-
-
-
 
     [{'id': 30,
       'name': 'id',
@@ -141,21 +108,14 @@ fields.get('items')[:2]
       'numTempOperators': 0}]
 
 
-
 ### Fields definition filtering Properties only
-
 
 ```python
 fields_filter = client.get_fields("Persona", filterFields=True)
 print('Total:', fields_filter.get('total'))
 fields_filter.get('items')[:2]
 ```
-
     Total: 409
-    
-
-
-
 
     [{'id': 30,
       'name': 'id',
@@ -179,9 +139,7 @@ fields_filter.get('items')[:2]
       'numTempOperators': 0}]
 
 
-
 ### Get incidencias, and update employee
-
 
 ```python
 incidencias = []
@@ -200,6 +158,7 @@ client.container_save(**data)
 ```
 
 ##### To add periods, use the key "validity" with a list of elements like:
+
 ```python
 {
     "id": incidencia.get("id"),
@@ -210,8 +169,8 @@ client.container_save(**data)
 }
 ```
 
-### Get elements definition
 
+### Get elements definition
 
 ```python
 employee = client.get_element_def(container="Persona", elements=[8])
@@ -220,9 +179,6 @@ employee = employee[0]
 # show calendars
 employee.get('Calendar')
 ```
-
-
-
 
     {'id': 8,
      '_c_': '',
@@ -243,16 +199,11 @@ employee.get('Calendar')
      'multiName': {'es-ES': '8'}}
 
 
-
 ### Get default values in create form
-
 
 ```python
 client.get_create_form("Jornada")
 ```
-
-
-
 
     {'_c_': 'Jornada',
      'id': -1,
@@ -287,17 +238,12 @@ client.get_create_form("Jornada")
       {'data': 'endobli', 'label': 'Final bloque obligatorio'}]}
 
 
-
 ### Get dataObj for duplicate element
-
 
 ```python
 client.get_for_duplicate(container="Arbol", element=9)
 # edit and then use client.container_save() method
 ```
-
-
-
 
     {'_c_': 'Arbol',
      'id': -1,
@@ -317,16 +263,11 @@ client.get_for_duplicate(container="Arbol", element=9)
      'multiName': {'es-ES': 'ARGENTINA'}}
 
 
-
 ### Disconnect
-
 
 ```python
 client.disconnect()
 client.is_connected
 ```
-
-
-
 
     False
