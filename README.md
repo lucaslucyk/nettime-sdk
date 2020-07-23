@@ -12,9 +12,9 @@ import nettime6 as nt6
 ### Client settings
 
 ```python
-URL = 'http://172.18.4.57:6091'
-USERNAME = 'Argentina'
-PWD = 'Spec@1234'
+readURL = 'http://NETTIME_SERVER:PORT'
+USERNAME = 'YOUR_USERNAME'
+PWD = 'YOUR_PASSWORD'
 ```
 
 ### Create a client
