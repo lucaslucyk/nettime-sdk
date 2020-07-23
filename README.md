@@ -12,7 +12,7 @@ import nettime6 as nt6
 ### Client settings
 
 ```python
-readURL = 'http://NETTIME_SERVER:PORT'
+URL = 'http://NETTIME_SERVER:PORT'
 USERNAME = 'YOUR_USERNAME'
 PWD = 'YOUR_PASSWORD'
 ```
