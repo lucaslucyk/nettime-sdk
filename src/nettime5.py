@@ -233,12 +233,10 @@ class Client:
 
         json_data = {
             "comment": None,
-            "elements": [
-                {
-                    "id": timetype,
-                    "type": "timetypes",
-                },
-            ],
+            "elements": [{
+                "id": timetype,
+                "type": "timetypes",
+            }],
             "lat": -1,
             "lon": -1,
             "mobileId": None,
