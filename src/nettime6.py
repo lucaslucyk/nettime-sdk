@@ -545,7 +545,7 @@ class Client:
             ],
         }
 
-        return = self.post(path='/api/day/post/', json=json_data)
+        return self.post(path='/api/day/post/', json=json_data)
 
     def get_day_clockings(self, employee: int, \
             date: str = datetime.date.today().isoformat()):
