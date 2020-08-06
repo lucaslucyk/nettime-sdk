@@ -1293,6 +1293,136 @@ client.get_activity_monitor(employees=[2], _from="2020-07-02", to="2020-07-03")
  {'info': {}}]
 ```
 
+### Get cube results (like results query window)
+
+
+```python
+client.get_cube_results(
+    dateIni="2020-07-02",
+    dateEnd="2020-07-04",
+    dimensions=[
+        ["id", "Apellidos_Nombre"],
+        ["date"],
+        ["ResultValue_C.Min.NORMALES", "ResultValue_S.Min.Jornada_teorica"]
+    ]
+)
+```
+
+
+
+
+    [{'dimKey': [1, 'Lucyk, Lucas'],
+      'values': [0, 1440],
+      'children': [{'dimKey': ['2020-07-02'], 'values': [0, 480]},
+       {'dimKey': ['2020-07-03'], 'values': [0, 480]},
+       {'dimKey': ['2020-07-04'], 'values': [0, 480]}]},
+     {'dimKey': [2, 'Doe, John'],
+      'values': [480, 960],
+      'children': [{'dimKey': ['2020-07-02'], 'values': [0, 480]},
+       {'dimKey': ['2020-07-03'], 'values': [480, 480]},
+       {'dimKey': ['2020-07-04'], 'values': [0, 0]}]}]
+
+
+
+#### For more information see the documentation
+
+
+```python
+help(client.get_cube_results)
+```
+
+    Help on method get_cube_results in module nettime6:
+    
+    get_cube_results(dimensions: list, dateIni: str, dateEnd: str, interfilters: list = [], filters: list = [], ids: list = []) method of nettime6.Client instance
+        Gets nettime results using the "Results Query" window engine.
+        
+        :param dimensions: List of list where each one contains the desired 
+            fields or results. The order of the values does matter.
+        :param dateIni: Start day where you want to calculate.
+        :param dateIni: End day where you want to calculate.
+        :param interfilters: (Optional) If you use the dimension "system", 
+            specify the ids of the results in this parameter.
+        :param filters: (Optional) Nettime compatible filter expression.
+        :param ids: (Optional) List of employee ids in case you want to filter.
+        
+        :return: :class:`list` object
+        :rtype: json
+    
+    
+
+#### Another example...
+
+
+```python
+# get system result ids
+client.get_elements("SystemResult")
+```
+
+
+
+
+    {'total': 13,
+     'items': [{'id': 0, 'name': 'Productivas en el centro'},
+      {'id': 1, 'name': 'Productivas fuera del centro'},
+      {'id': 2, 'name': 'No productivas en el centro'},
+      {'id': 3, 'name': 'No productivas fuera del centro'},
+      {'id': 4, 'name': 'Ausencias justificadas'},
+      {'id': 5, 'name': 'Ausencias no justificadas'},
+      {'id': 6, 'name': 'Productivas'},
+      {'id': 7, 'name': 'No productivas'},
+      {'id': 8, 'name': 'Trabajadas'},
+      {'id': 9, 'name': 'Pausas'},
+      {'id': 10, 'name': 'Retrasos'},
+      {'id': 11, 'name': 'Jornada teórica'},
+      {'id': 12, 'name': 'Filtro día'}]}
+
+
+
+
+```python
+# get results with system engine
+client.get_cube_results(
+    dateIni="2020-07-02",
+    dateEnd="2020-07-04",
+    dimensions=[
+        ["id", "Apellidos_Nombre"],
+        ["date"],
+        ["sistema"],
+        ["interTotal"]
+    ],
+    interFilters=[{
+        "dimension": "sistema",
+        "elements": [6, 11] #Productivas and Jornada teórica
+    }]
+)
+```
+
+
+
+
+    [{'dimKey': [1, 'Lucyk, Lucas'],
+      'values': [1440],
+      'children': [{'dimKey': ['2020-07-02'],
+        'values': [480],
+        'children': [{'dimKey': ['Jornada teórica'], 'values': [480]}]},
+       {'dimKey': ['2020-07-03'],
+        'values': [480],
+        'children': [{'dimKey': ['Jornada teórica'], 'values': [480]}]},
+       {'dimKey': ['2020-07-04'],
+        'values': [480],
+        'children': [{'dimKey': ['Jornada teórica'], 'values': [480]}]}]},
+     {'dimKey': [2, 'Doe, John'],
+      'values': [1475],
+      'children': [{'dimKey': ['2020-07-02'],
+        'values': [480],
+        'children': [{'dimKey': ['Jornada teórica'], 'values': [480]}]},
+       {'dimKey': ['2020-07-03'],
+        'values': [995],
+        'children': [{'dimKey': ['Productivas'], 'values': [515]},
+         {'dimKey': ['Jornada teórica'], 'values': [480]}]}]}]
+
+
+
 ### Disconnect
 
 

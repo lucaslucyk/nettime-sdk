@@ -90,7 +90,8 @@ class Client:
         if self.is_connected:
             return
 
-        url = f'{self.nettime_url.geturl()}/api/login'
+        # url and data prepare
+        url = urljoin(self.nettime_url.geturl(), '/api/login')
         data = {
             "username": self.username,
             "pwd": b64decode(self.pwd).decode('utf-8'),
@@ -259,6 +260,31 @@ class Client:
             days_numbers.append(delta.days)
 
         return days_numbers
+
+    def get_days_from_ofsets(self, ofsets: list):
+        """ 
+        Convert a list of int offset to datetime.date or str format with \
+        self.setting.firstDate.
+        """
+
+        # wait active conection
+        if not self.is_connected:
+            raise ConnectionError("Cliente desconectado. Utilice connect().")
+
+        firstYear = self.settings.get('firstDate', None)
+        if not firstYear:
+            raise RuntimeError("No se puede obtener el setting firstDate.")
+
+        # set first_date
+        first_date = datetime.date(firstYear, 1, 1)
+
+        # process dates
+        dates = []
+        for offset in offsets:
+            date = first_date + datetime.timedelta(days=offset)
+            dates.append(date.isoformat())
+        
+        return dates
         
     def get_fields(self, container: str, filterFields: bool = False):
         """ Get all fields of an specific container. """
@@ -667,3 +693,37 @@ class Client:
 
         # get and return task results
         return self.get_task_response(async_tasK.get('taskId'))
+
+    def get_cube_results(self, dimensions: list, dateIni: str, dateEnd: str, \
+            interFilters: list = [], filters: list = [], ids: list = []):
+        """
+        Gets nettime results using the "Results Query" window engine.
+
+        :param dimensions: List of list where each one contains the desired 
+            fields or results. The order of the values does matter.
+        :param dateIni: Start day where you want to calculate.
+        :param dateIni: End day where you want to calculate.
+        :param interfilters: (Optional) If you use the dimension "system", 
+            specify the ids of the results in this parameter.
+        :param filters: (Optional) Nettime compatible filter expression.
+        :param ids: (Optional) List of employee ids in case you want to filter.
+        
+        :return: :class:`list` object
+        :rtype: json
+        """
+
+        # prepare task parameters
+        json_data = {
+            "container": "Persona",
+            "dateIni": dateIni,
+            "dateEnd": dateEnd,
+            "ids": ids,
+            "filters": filters,
+            "dimensions": dimensions,
+            "interFilters": interFilters,
+        }
+
+        # post and return response
+        return self.post(path='/api/data/cube', json=json_data)
+
+
