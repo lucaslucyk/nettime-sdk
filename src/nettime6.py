@@ -1,8 +1,27 @@
+from string import digits as str_digits, ascii_lowercase as str_letters
+from random import choice as r_choice
 from urllib.parse import urlparse, urlencode, urljoin
 from base64 import b64encode, b64decode
 import requests
 import datetime
+import re
 
+__version__ = "0.1-Alpha"
+__nettime__ = "6.0.1.17769"
+
+def random_str(size=5, chars=str_digits + str_letters):
+    """ Return a str of 'size' len with numbers and ascii lower letters. """
+
+    return ''.join(r_choice(chars) for _ in range(size))
+
+def create_random_suffix(name=""):
+    """ Create a random name adding suffix after of clean recived name. """
+
+    clean = re.sub('[^a-zA-Z0-9]', '_', name)
+    clean += '_' if name else "" 
+    clean += random_str(size=5)
+
+    return clean
 
 class Query:
 
@@ -51,7 +70,7 @@ class Client:
         """ Create a conection with nettime app using recived parameters. """
 
         super().__init__(*args, **kwargs)
-        self.nettime_url = urlparse(url)
+        self.client_url = urlparse(url)
         self.username = username
         self.pwd = b64encode(pwd.encode('utf-8'))
 
@@ -67,13 +86,13 @@ class Client:
         return '{}{} en {}'.format(
             f'{self.access_token} para ' if self.access_token else '',
             self.username,
-            self.nettime_url.geturl()
+            self.client_url.geturl()
         )
 
     def __repr__(self):
         return "{}(url='{}', username='{}', pwd='{}')".format(
             self.__class__.__name__,
-            self.nettime_url.geturl(),
+            self.client_url.geturl(),
             self.username,
             b64decode(self.pwd).decode('utf-8'),
         )
@@ -91,7 +110,7 @@ class Client:
             return
 
         # url and data prepare
-        url = urljoin(self.nettime_url.geturl(), '/api/login')
+        url = urljoin(self.client_url.geturl(), '/api/login')
         data = {
             "username": self.username,
             "pwd": b64decode(self.pwd).decode('utf-8'),
@@ -137,7 +156,7 @@ class Client:
         
         # query prepare
         query = {
-            "url": urljoin(self.nettime_url.geturl(), path),
+            "url": urljoin(self.client_url.geturl(), path),
             "params": params,
             "headers": self.headers,
             "timeout": kwargs.get("timeout", 10),
@@ -158,14 +177,15 @@ class Client:
         # to json
         return response.json()
 
-    def post(self, path, data=None, json: dict = None, **kwargs):
+    def post(self, path, data=None, json=None, **kwargs):
         """
         Sends a POST request to nettime url.
 
         :param url: URL for the new :class:`Request` object.
         :param data: (optional) Dictionary, list of tuples, bytes, or file-like
             object to send in the body of the :class:`Request`.
-        :param json: (optional) json data to send in the body of the :class:`Request`.
+        :param json: (optional) json data to send in the body of the 
+            :class:`Request`.
         :param \*\*kwargs: Optional arguments that ``request`` takes.
         :return: :class:`dict` object
         :rtype: dict
@@ -177,7 +197,7 @@ class Client:
 
         # query prepare
         query = {
-            "url": urljoin(self.nettime_url.geturl(), path),
+            "url": urljoin(self.client_url.geturl(), path),
             "data": data,
             "json": json,
             "headers": self.headers,
@@ -214,6 +234,9 @@ class Client:
 
     def disconnect(self):
         """ Disconnect a client to lock the access_token. """
+
+        if not self.is_connected:
+            return
         
         # disconnect ...
         response = self.post(path='/api/logout')
@@ -314,8 +337,14 @@ class Client:
         }
 
         # request.get -> json
-        return self.get(path='/api/container/elements', params=params)
-        
+        json_response = self.get(path='/api/container/elements', params=params)
+
+        # get task results
+        if json_response.get('taskId', None):
+            json_response = self.get_task_response(json_response.get('taskId'))
+
+        return json_response
+
     def get_employees(self, query=Query(["id", "nif"]), *args, **kwargs):
         """ Get employees from nettime. """
 
@@ -626,7 +655,7 @@ class Client:
     def add_planning(self, employee: int, name: str, days: list, \
             allDay: bool = True, timetype: int = 0):
         """
-        Create an absence planning for an employee on the indicated days using \
+        Create an absence planning for an employee on the indicated days using 
         the received timetype.
         """
 
@@ -725,5 +754,134 @@ class Client:
 
         # post and return response
         return self.post(path='/api/data/cube', json=json_data)
+
+    def set_employee_calendar(self, employee: int, calendar: str):
+        """ Get a calendar with name and assign to employee. """
+
+        # searching employee
+        emp = self.get_element_def("Persona", elements=[employee])
+        if not emp:
+            raise ValueError("No se encuentra el empleado.")
+
+        # searching calendar
+        query = Query(
+            fields=["id", "name"],
+            filterExp=f"this.name == '{calendar}'"
+        )
+        calendars = self.get_elements(container="Calendario", query=query)
+        if not calendars.get('total'):
+            raise ValueError("No se encuentra el calendario.")
+
+        # processing calendars
+        employee_calendar = emp[0].get("Calendar")
+        employee_calendar["Calendars"] = calendars.get('items')
+        
+        # assign position
+        for i in range(len(employee_calendar["Calendars"])):
+            employee_calendar["Calendars"][i].update({"__elemPosition": i})
+
+        # saving data
+        data = {
+            "container": "Persona",
+            "elements": [employee],
+            "dataObj": {
+                "Calendar": employee_calendar
+            }
+        }
+
+        return self.save_element(**data)
+
+    def create_department_node(self, name: str, parent: int = -1, **kwargs):
+        """ Create a new node in department structure. """
+
+        # constant return if element exist
+        EXIST_TEXT = "Ya existe un elemento con el mismo nombre descriptivo."
+
+        # getting form
+        node = self.get_create_form("Arbol")
+        node['name'] = name
+        node['idNodeParent'] = parent
+        node['internalName'] = kwargs.get('internalName', None)
+
+        # save new node
+        new_elem = self.save_element(container="Arbol", dataObj=node)
+
+        if new_elem[0].get('message') == EXIST_TEXT:
+            return self.create_department_node(
+                name=name,
+                parent=parent,
+                internalName=create_random_suffix(name),
+            )
+        
+        # if couldn't be created
+        if new_elem[0].get('type') != 6:
+            raise RuntimeError(new_elem[0].get('message'))
+        
+        return new_elem
+
+    def set_employee_department(self, employee: int, node_path: list, \
+            auto_create: bool = True):
+        """ Get a Department with list of names and assign to employee. """
+
+        def make_filter(parent: int):
+            # create dynamic function
+            def node_filter(department):
+                return department['idNodeParent'] == parent
+            
+            # return fynamic func
+            return node_filter
+
+        depto_id_rel = {}
+        for i in range(len(node_path)):
+            # get elements by name
+            query = Query(
+                fields=["id", "name", "idNodeParent"],
+                filterExp=f"this.name = '{node_path[i]}'"
+            )
+            departs = self.get_elements(container="Arbol", query=query)
+
+            # create dynamic filter
+            filter_node = make_filter(depto_id_rel.get(node_path[i-1], -1))
+
+            # filter elements
+            search = list(filter(filter_node, departs.get('items')))
+
+            if not search:
+                # raise if not auto_create
+                if not auto_create:
+                    raise ValueError("Nodo no encontrado")
+
+                # create node
+                new_node = self.create_department_node(
+                    name=node_path[i],
+                    parent=depto_id_rel.get(node_path[i-1], -1)
+                )
+
+                # refresh search
+                search = [new_node[0].get('dataObject')]
+            
+            # put result in rels
+            depto_id_rel.update({node_path[i]: search[0].get('id')})
+
+        # department structure
+        object_assign = []
+        if node_path:
+            object_assign = [{'id': depto_id_rel.get(node_path[-1])}]
+
+        # saving data
+        data = {
+            "container": "Persona",
+            "elements": [employee],
+            "dataObj": {
+                "Departments": object_assign
+            }
+        }
+
+        return self.save_element(**data)
+
+
+
+        
+
 
 
