@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='spec_utils',
-    version='0.4.1',
+    version='0.4.2',
     description='SPEC Utils',
     py_modules=['connectors',],
     packages=['spec_utils'],
@@ -31,7 +31,7 @@ setup(
         ],
     },
 
-    utl='https://github.com/lucaslucyk/spec-utils',
+    url='https://github.com/lucaslucyk/spec-utils',
     author='Lucas Lucyk',
     author_email='lucaslucyk@gmail.com',
 )

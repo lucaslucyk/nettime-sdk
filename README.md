@@ -1,20 +1,25 @@
-# nettime-sdk
-sdk for netTime (SPEC, SA)
+# SPEC Utils
+sdks for SPEC, SA and third applications
 
-### Add src folder to path
+## Install
 
-
-```python
-import sys, os
-sys.path.append(os.path.join(os.getcwd(), '..', 'src'))
+Can use: 
+```shell
+pip install spec-utils
 ```
+Or:
+
+```shell
+python -m pip install spec-utils
+```
+
+## Net-Time
 
 ### Import module
 
 
 ```python
-import nettime6 as nt6
-from importlib import reload
+from spec_utils import nettime6 as nt6
 ```
 
 ### Client settings
@@ -30,7 +35,6 @@ PWD = 'Spec.2020'
 
 
 ```python
-reload(nt6) # for reaload changes only
 client = nt6.Client(url=URL, username=USERNAME, pwd=PWD)
 client.is_connected
 ```
@@ -113,6 +117,31 @@ client.get_employees(query=query)
        'Apellidos_Nombre': 'Doe, John',
        'Province': 'Ciudad Autónoma de Buenos Aires',
        'birthdate': '1987-08-05T00:00:00.0000000'}]}
+
+
+
+
+```python
+query = nt6.Query(
+    fields=["id", "nif", "Apellidos_Nombre", "birthdate", "Persona.CalendarioBase"],
+)
+client.get_employees(query=query)
+```
+
+
+
+
+    {'total': 2,
+     'items': [{'id': 1,
+       'nif': '123789456',
+       'Apellidos_Nombre': 'Lucyk, Lucas',
+       'birthdate': '0001-01-01T00:00:00.0000000',
+       'Persona.CalendarioBase': 'Flexible 8h'},
+      {'id': 2,
+       'nif': '987321654',
+       'Apellidos_Nombre': 'Doe, John',
+       'birthdate': '1987-08-05T00:00:00.0000000',
+       'Persona.CalendarioBase': 'LaV 09 a 18'}]}
 
 
 
@@ -1267,7 +1296,7 @@ client.get_activity_monitor(employees=[2], _from="2020-07-02", to="2020-07-03")
 
 #### Data structured like:
 ```python
-[{'id': Employee_ID,
+[{'id': employee_ID,
   'days': [{
     'id': offset_day_number #(settings.firstDate),
     'idAno': anomaly_id,
@@ -1276,7 +1305,7 @@ client.get_activity_monitor(employees=[2], _from="2020-07-02", to="2020-07-03")
       'i': timtype_id,
       't': type,
       'e': state,
-      'o': order,
+      'o': origin,
       'c': color}],
     'horari': [{ # Jornada
       'mi': start,
@@ -1287,7 +1316,7 @@ client.get_activity_monitor(employees=[2], _from="2020-07-02", to="2020-07-03")
       'idv': 5},
      {'mi': 780, 'mf': 1080, 'ia': True, 'fa': True, 'tv': 2, 'idv': 5},
      {'mi': 720, 'mf': 780, 'ia': True, 'fa': True, 'tv': 2, 'idv': 9}],
-    'idJor': Jornada ID,
+    'idJor': shift_id,
     'bJor': [{'startTime': shift_start, 'endTime': shift_end}]}],
   'planInfos': {}},
  {'info': {}}]
@@ -1423,6 +1452,73 @@ client.get_cube_results(
 
 
 
+### Assign calendar
+
+
+```python
+edit_employee = client.set_employee_calendar(employee=2, calendar="Flexible 8h")
+edit_employee[0].get('dataObject').get('Calendar')
+```
+
+
+
+
+    {'id': 2,
+     '_c_': '',
+     'created': '0001-01-01T00:00:00.0000000',
+     'modified': '0001-01-01T00:00:00.0000000',
+     'name': '',
+     'rev': 0,
+     'years': [{'Year': 2012, 'days': {}},
+      {'Year': 2016, 'days': {}},
+      {'Year': 2017, 'days': {}},
+      {'Year': 2018, 'days': {}},
+      {'Year': 2019, 'days': {}},
+      {'Year': 2020,
+       'days': {'0': {'shifts': [4]},
+        '1': {'shifts': [4]},
+        '33': {'shifts': [3]},
+        '34': {'shifts': [3]},
+        '35': {'shifts': [3]},
+        '36': {'shifts': [3]},
+        '37': {'shifts': [3]},
+        '54': {'shifts': [3]},
+        '55': {'shifts': [3]},
+        '56': {'shifts': [3]},
+        '57': {'shifts': [3]},
+        '58': {'shifts': [3]},
+        '217': {'shifts': [2]}}},
+      {'Year': 2021, 'days': {}}],
+     'Cycles': [],
+     'Calendars': [{'id': 2, 'name': 'Flexible 8h'}],
+     'nodesSource': [],
+     'multiName': {'es-ES': ''}}
+
+
+
+### Assign department
+
+
+```python
+path = ["SPEC SA", "Argentina", "CABA", "Information Technology", "Help Desk"]
+edit_employee = client.set_employee_department(employee=2, node_path=path)
+edit_employee[0].get('dataObject').get('Departments')
+```
+
+
+
+
+    [{'id': 17}]
+
+
+
+### Get departments
+
+
+```python
+# to dev...
+```
+
 ### Disconnect
 
 
@@ -1437,3 +1533,195 @@ client.is_connected
     False
 
 
+
+
+```python
+client.get_element_def(container="Persona", elements=[4])
+```
+
+
+
+
+    [{'_c_': 'Persona',
+      'id': -1,
+      'created': '0001-01-01T00:00:00.0000000',
+      'changePassword': False,
+      'firstWONumDays': 0,
+      'firstWO': -1,
+      'firstWANumDays': 0,
+      'firstWA': -1,
+      'firstTTNumDays': 0,
+      'firstTT': -1,
+      'termVoice': False,
+      'timeoutEnrollMinutes': 0,
+      'timeoutEnrollDate': '0001-01-01T00:00:00.0000000',
+      'enrollActive': False,
+      'sex': 0,
+      'Visitas.RecibirVisitas': False,
+      'securityLevel': 0,
+      'ticketEmail': False,
+      'timeoutEnroll': '0001-01-01T00:00:00.0000000',
+      'useTasksWE': False,
+      'useTasksWO': False,
+      'useTasksWA': False,
+      'useTasks': False,
+      'ProfaceAdmin': False,
+      'MobileClocking': False,
+      'RemoteClocking': False,
+      'Portal.DisablePasswordChange': False,
+      'Portal.DisableCalendar': False,
+      'Portal.DisablePlannings': False,
+      'Portal.DisableVistaResumen': False,
+      'Portal.DisableMovimientos': False,
+      'Portal.NoPuedeEditar': False,
+      'Portal.NoRequiereValidacionEnCorreccion': False,
+      'Portal.UsaPortal': False,
+      'virtualCard': False,
+      'geolocalize': 'geoNever',
+      'offline': False,
+      'totalDocs': 0,
+      'Portal.ChangeLanguage': True,
+      'rev': 0,
+      'modified': '0001-01-01T00:00:00.0000000',
+      'birthdate': '0001-01-01T00:00:00.0000000',
+      'Visitas.ProgramarVisitas': False,
+      'acceptAllReaders': False,
+      'acceptAllTT': False,
+      'NoAttendance': False,
+      'RegisterSystemDate': '2020-08-27T00:00:00.0000000-03:00',
+      'htmlPortal': False,
+      'inactive': True,
+      'pwdCantChange': False,
+      'exboss': False,
+      'pwdNextLogin': False,
+      'pwdExpires': True,
+      'pwdRetries': 0,
+      'lastPwdChange': '0001-01-01T00:00:00.0000000',
+      'NumFingers': 0,
+      'PIN': 0,
+      'FirstDayNotValid': '2004-01-01T00:00:00.0000000',
+      'FingerIEVO2EnrollDate': '0001-01-01T00:00:00.0000000',
+      'Finger2EnrollDate': '0001-01-01T00:00:00.0000000',
+      'Finger1EnrollDate': '0001-01-01T00:00:00.0000000',
+      'LastName': '',
+      'FingerIEVO1EnrollDate': '0001-01-01T00:00:00.0000000',
+      'ActiveDays': {'validity': [{'start': '2020-08-27T00:00:00.0000000-03:00',
+         'end': '2040-12-31T00:00:00.0000000'}]},
+      'Readers': [],
+      'Cards': [],
+      'Calendar': {'id': -1,
+       '_c_': '',
+       'created': '0001-01-01T00:00:00.0000000',
+       'modified': '0001-01-01T00:00:00.0000000',
+       'name': '-1',
+       'rev': 0,
+       'Cycles': [],
+       'Calendars': [],
+       'nodesSource': [],
+       'multiName': {'es-ES': '-1'}},
+      'doAccess': {'total': True, 'offsetIn': 0, 'offsetOut': 0},
+      'TimeTypesEmployee': [],
+      'Departments': [],
+      'enrollDevices': [],
+      'geolocSource': [{'data': 'geoAlways', 'label': 'Siempre'},
+       {'data': 'geoIfPossible', 'label': 'Si es posible'},
+       {'data': 'geoNever', 'label': 'Nunca'}],
+      'source': [{'id': 1,
+        'name': 'Proximity',
+        'displayName': 'Proximity',
+        'description': '',
+        'type': 'terminal',
+        'icon': 'Terminal',
+        'children': [{'id': 2,
+          'displayName': 'Proximity_1',
+          'type': 'reader',
+          'description': 'Lector 2 del terminal Proximity',
+          'icon': 'Lector',
+          'children': [{'type': 'device',
+            'name': 'CD1',
+            'displayName': 'Lector de proximidad interno conectado en CD1',
+            'description': 'CD1',
+            'default': 1,
+            'deviceType': 'Tarjeta',
+            'hasElement': True,
+            'expr': '',
+            'allow': False,
+            'id': 'Proximity_Proximity_1_CD1'}]}]},
+       {'id': 3,
+        'name': 'Fingerprint',
+        'displayName': 'Fingerprint',
+        'description': '',
+        'type': 'terminal',
+        'icon': 'Terminal',
+        'children': [{'id': 1,
+          'displayName': 'Fingerprint_1',
+          'type': 'reader',
+          'description': 'Lector 1 del terminal Fingerprint',
+          'icon': 'Lector',
+          'children': [{'type': 'device',
+            'name': 'COM1',
+            'displayName': 'Lector de huella interno conectado en COM1',
+            'description': 'COM1',
+            'default': 1,
+            'deviceType': 'Huella',
+            'hasElement': True,
+            'expr': '',
+            'allow': False,
+            'id': 'Fingerprint_Fingerprint_1_COM1'},
+           {'type': 'device',
+            'name': 'BI1',
+            'displayName': 'Teclado interno conectado en BI1',
+            'description': 'BI1',
+            'default': 1,
+            'deviceType': 'Teclado',
+            'hasElement': False,
+            'expr': '',
+            'allow': False,
+            'id': 'Fingerprint_Fingerprint_1_BI1'}]}]}],
+      'initialValuesList': [],
+      'nodesSource': [{'data': '1', 'label': 'SPEC SA'},
+       {'data': '2', 'label': 'SPEC SA · Argentina'},
+       {'data': '15', 'label': 'SPEC SA · Argentina · CABA'},
+       {'data': '16',
+        'label': 'SPEC SA · Argentina · CABA · Information Technology'},
+       {'data': '17',
+        'label': 'SPEC SA · Argentina · CABA · Information Technology · Help Desk'}],
+      'languages': [{'data': 'ca-ES', 'label': 'Català'},
+       {'data': 'en-GB', 'label': 'English'},
+       {'data': 'es-ES', 'label': 'Español'},
+       {'data': 'eu-ES', 'label': 'Euskara'},
+       {'data': 'fr-FR', 'label': 'Français'},
+       {'data': 'pt-PT', 'label': 'Português'}]}]
+
+
+
+
+```python
+query = nt6.Query(
+    fields=["nif", "name", "LastName", "nameEmployee", "modified"],
+    filterExp='this.modified >= "2020-08-15"'
+)
+client.get_employees(query=query)
+```
+
+
+
+
+    {'total': 2,
+     'items': [{'nif': '9876451',
+       'name': 'GGDOE',
+       'LastName': 'Doe',
+       'nameEmployee': 'John',
+       'modified': '2020-08-27T13:43:23.9364016-03:00'},
+      {'nif': '12345678',
+       'name': 'N08915465',
+       'LastName': 'Spec',
+       'nameEmployee': 'Argentina',
+       'modified': '2020-08-27T14:17:29.5623089-03:00'}]}
+
+
+
+
+```python
+
+```
