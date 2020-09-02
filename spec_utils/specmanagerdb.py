@@ -23,6 +23,12 @@ class Client:
             poolclass=NullPool
         )
 
+    def __enter__(self, *args, **kwargs):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        return self.dispose()
+
 
     def dispose(self):
         return self.engine.dispose()
@@ -43,7 +49,7 @@ class Client:
 
         return df
 
-    def post_values(self, df: pd.DataFrame, table: str, schema: str = None, \
+    def insert_values(self, df: pd.DataFrame, table: str, schema: str = None, \
             if_exists: str = 'append', index: bool = False, \
             index_label: str = None, chunksize: int = None, \
             method: str = 'multi', from_records: bool = False):

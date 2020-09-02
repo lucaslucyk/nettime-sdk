@@ -6,7 +6,6 @@ import requests
 import datetime
 import re
 
-__version__ = "0.1-Alpha"
 __nettime__ = "6.0.1.17769"
 
 def random_str(size=5, chars=str_digits + str_letters):
@@ -96,6 +95,12 @@ class Client:
             self.username,
             b64decode(self.pwd).decode('utf-8'),
         )
+
+    def __enter__(self, *args, **kwargs):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        return self.disconnect()
 
     @property
     def is_connected(self):

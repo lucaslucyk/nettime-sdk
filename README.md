@@ -1,5 +1,5 @@
 # SPEC Utils
-sdks for SPEC, SA and third applications
+SDKs to connect SPEC with third-party applications
 
 ## Install
 

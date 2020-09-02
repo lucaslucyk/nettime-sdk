@@ -35,6 +35,12 @@ class Client:
             b64decode(self.pwd).decode('utf-8'),
         )
 
+    def __enter__(self, *args, **kwargs):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        return self.disconnect()
+
     @property
     def is_connected(self):
         """ Informs if client has headers and access_token. """
