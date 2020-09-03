@@ -1,5 +1,5 @@
 # SPEC Utils
-SDKs to connect SPEC with third-party applications
+SDKs to consume SPEC SA and third-party applications from Python
 
 ## Install
 

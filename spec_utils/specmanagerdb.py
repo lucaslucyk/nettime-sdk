@@ -53,23 +53,40 @@ class Client:
             if_exists: str = 'append', index: bool = False, \
             index_label: str = None, chunksize: int = None, \
             method: str = 'multi', from_records: bool = False):
+        """ Insert a dataframe in database with recived data. """
         
-        if from_records:
+        if from_records and not isinstance(df, pd.DataFrame):
             # create pandas dataframe
             df = pd.DataFrame.from_records(df)
 
         # to sql
         df.to_sql(
             name=table,
+            con=self.engine,
             schema=schema,
             if_exists=if_exists,
             index=index,
             index_label=index_label,
             chunksize=chunksize,
-            method=method    
+            method=method
         )
 
+        # return true for general propose
         return True
+
+    def run_import_lips(self, table: str):
+        """ Insert into AR_DOWN_CONF table so LIPS can import. """
+
+        # create dataframe
+        df = pd.DataFrame([{
+            'TABLE_NAME': table,
+            'PARCIAL': True,
+            'SOURCE_SYS': 'NET_SYNC',
+            'SISTEMA': 'NET_SYNC',
+        }])
+
+        # insert in AR_DOWN_CONF
+        return self.insert_values(df=df, table='AR_DOWN_CONF')
 
     def get_from_table(self, table: str, fields: list = ['*'], \
             top: int = 5, where: str = None, group_by: list = [], **kwargs):
@@ -92,3 +109,19 @@ class Client:
 
         return self.get_from_table(table="PERSONAS", **kwargs)
 
+    def import_employees(self, employees: pd.DataFrame, **kwargs):
+        """ Insert a dataframe of employees in database. """
+
+        # insert dataframe
+        insert = self.insert_values(
+            df=employees,
+            table="AR_IMP_PERSONAL",
+        )
+
+        # if error
+        if not insert:
+            raise RuntimeError("Error inserting employees in database.")
+        
+        # force import inserting new line in ar_down_conf
+        return self.run_import_lips(table="AR_IMP_PERSONAL")
+        
