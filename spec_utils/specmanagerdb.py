@@ -86,7 +86,7 @@ class Client:
         }])
 
         # insert in AR_DOWN_CONF
-        return self.insert_values(df=df, table='AR_DOWN_CONF')
+        return self.insert_values(df=df, table='AR_DOWNCONF')
 
     def get_from_table(self, table: str, fields: list = ['*'], \
             top: int = 5, where: str = None, group_by: list = [], **kwargs):
