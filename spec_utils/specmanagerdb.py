@@ -79,8 +79,6 @@ class Client:
             source: str = 'spec-utils'):
         """ Insert into AR_DOWN_CONF table so LIPS can import. """
 
-        date_time, table_name, partial, source, system, transaction, end
-
         # create dataframe
         df = pd.DataFrame([{
             'DATE_TIME': dt.datetime.now(),
