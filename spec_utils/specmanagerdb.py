@@ -1,6 +1,7 @@
 import pandas as pd
 import sqlalchemy
 from sqlalchemy.pool import NullPool
+import datetime as dt
 
 class Client:
 
@@ -74,18 +75,24 @@ class Client:
         # return true for general propose
         return True
 
-    def run_import_lips(self, table: str):
+    def run_import_lips(self, table: str, lips_name: str, \
+            source: str = 'spec-utils'):
         """ Insert into AR_DOWN_CONF table so LIPS can import. """
+
+        date_time, table_name, partial, source, system, transaction, end
 
         # create dataframe
         df = pd.DataFrame([{
+            'DATE_TIME': dt.datetime.now()
             'TABLE_NAME': table,
-            'PARCIAL': True,
-            'SOURCE_SYS': 'NET_SYNC',
-            'SISTEMA': 'NET_SYNC',
+            'PARTIAL': True,
+            'SOURCE': source,
+            'LIPS': lips_name,
+            'TRANSACTION': None,
+            'END': None
         }])
 
-        # insert in AR_DOWN_CONF
+        # insert in AR_DOWNCONF
         return self.insert_values(df=df, table='AR_DOWNCONF')
 
     def get_from_table(self, table: str, fields: list = ['*'], \
@@ -123,5 +130,9 @@ class Client:
             raise RuntimeError("Error inserting employees in database.")
         
         # force import inserting new line in ar_down_conf
-        return self.run_import_lips(table="AR_IMP_PERSONAL")
+        return self.run_import_lips(
+            table="AR_IMP_PERSONAL",
+            lips_name="SYNC.IMP_PERSONAL",
+            **kwargs
+        )
         
