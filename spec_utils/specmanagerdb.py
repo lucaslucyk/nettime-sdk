@@ -83,13 +83,13 @@ class Client:
 
         # create dataframe
         df = pd.DataFrame([{
-            'DATE_TIME': dt.datetime.now()
+            'DATE_TIME': dt.datetime.now(),
             'TABLE_NAME': table,
             'PARTIAL': True,
             'SOURCE': source,
             'LIPS': lips_name,
             'TRANSACTION': None,
-            'END': None
+            'END': None,
         }])
 
         # insert in AR_DOWNCONF
