@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='spec_utils',
-    version='0.4.10',
+    version='0.4.11',
     description='SDKs to consume SPEC SA and third-party applications from Python',
     py_modules=['connectors',],
     packages=['spec_utils'],
