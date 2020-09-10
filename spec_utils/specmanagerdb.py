@@ -2,6 +2,7 @@ import pandas as pd
 import sqlalchemy
 from sqlalchemy.pool import NullPool
 import datetime as dt
+from secrets import token_hex
 
 class Client:
 
@@ -76,7 +77,8 @@ class Client:
         return True
 
     def run_import_lips(self, table: str, lips_name: str, \
-            source: str = 'spec-utils', **kwargs):
+            source: str = 'spec-utils', downconf_table: str = 'AR_DOWNCONF', \
+            **kwargs):
         """ Insert into AR_DOWN_CONF table so LIPS can import. """
 
         # create dataframe
@@ -86,12 +88,12 @@ class Client:
             'PARTIAL': True,
             'SOURCE': source,
             'LIPS': lips_name,
-            'TRANSACTION': None,
+            'TRANSACTION': token_hex(8),
             'END': None,
         }])
 
         # insert in AR_DOWNCONF
-        return self.insert_values(df=df, table='AR_DOWNCONF', **kwargs)
+        return self.insert_values(df=df, table=downconf_table, **kwargs)
 
     def get_from_table(self, table: str, fields: list = ['*'], \
             top: int = 5, where: str = None, group_by: list = [], **kwargs):
