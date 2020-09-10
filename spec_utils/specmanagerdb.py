@@ -76,7 +76,7 @@ class Client:
         # return true for general propose
         return True
 
-    def run_import_lips(self, table: str, lips_name: str, \
+    def run_import_lips(self, table: str, lips_name: str, _hash: str = None,
             source: str = 'spec-utils', downconf_table: str = 'AR_DOWNCONF', \
             **kwargs):
         """ Insert into AR_DOWN_CONF table so LIPS can import. """
@@ -88,8 +88,8 @@ class Client:
             'PARTIAL': True,
             'SOURCE': source,
             'LIPS': lips_name,
-            'TRANSACTION': token_hex(8),
-            'END': None,
+            'HASH': _hash or token_hex(8),
+            'END_TIME': None,
         }])
 
         # insert in AR_DOWNCONF
