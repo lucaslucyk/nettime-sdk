@@ -76,7 +76,7 @@ class Client:
         return True
 
     def run_import_lips(self, table: str, lips_name: str, \
-            source: str = 'spec-utils'):
+            source: str = 'spec-utils', **kwargs):
         """ Insert into AR_DOWN_CONF table so LIPS can import. """
 
         # create dataframe
@@ -91,7 +91,7 @@ class Client:
         }])
 
         # insert in AR_DOWNCONF
-        return self.insert_values(df=df, table='AR_DOWNCONF')
+        return self.insert_values(df=df, table='AR_DOWNCONF', **kwargs)
 
     def get_from_table(self, table: str, fields: list = ['*'], \
             top: int = 5, where: str = None, group_by: list = [], **kwargs):
@@ -109,18 +109,20 @@ class Client:
         # return results
         return self.read_sql_query(query=query, **kwargs)
 
-    def get_employees(self, **kwargs):
+    def get_employees(self, table: str = "PERSONAS", **kwargs):
         """ Get employees from database. """
 
-        return self.get_from_table(table="PERSONAS", **kwargs)
+        return self.get_from_table(table=table, **kwargs)
 
-    def import_employees(self, employees: pd.DataFrame, **kwargs):
+    def import_employees(self, employees: pd.DataFrame, \
+            table: str = "AR_IMP_PERSONAL", lips_name: str = "IMP_PERSONAL", \
+            ** kwargs):
         """ Insert a dataframe of employees in database. """
 
         # insert dataframe
         insert = self.insert_values(
             df=employees,
-            table="AR_IMP_PERSONAL",
+            table=table,
         )
 
         # if error
@@ -129,8 +131,8 @@ class Client:
         
         # force import inserting new line in ar_down_conf
         return self.run_import_lips(
-            table="AR_IMP_PERSONAL",
-            lips_name="SYNC.IMP_PERSONAL",
+            table=table,
+            lips_name=lips_name,
             **kwargs
         )
         
