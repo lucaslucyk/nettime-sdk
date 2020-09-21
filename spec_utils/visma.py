@@ -5,6 +5,7 @@ from base64 import b64encode, b64decode
 import requests
 import datetime
 import re
+import math
 
 #import nettime6 as nt6
 
@@ -257,7 +258,7 @@ class Client:
         self.connect()
 
     def get_employees(self, employee: str = None, extension: str = None, \
-            **kwargs):
+            all_pages: bool = False, **kwargs):
         """
         Use the endpoint to obtain the employees with the received data.
         
@@ -293,13 +294,29 @@ class Client:
         params = {
             "orderBy": kwargs.get("orderBy", None),
             "page": kwargs.get("page", None),
-            "pageSize": kwargs.get("pageSize", 5),
+            "pageSize": kwargs.get("pageSize", 50),
             "active": kwargs.get("active", None),
             "updatedFrom": kwargs.get("updatedFrom", None)
         }
 
         # request.get -> json
-        return self.get(path=path, params=params)
+        response = self.get(path=path, params=params)
+        
+        # recursive call to get all pages values
+        if all_pages and response.get('totalCount', 0) > params.get('pageSize'):
+            # calculate num of pages
+            num_pages = math.ceil(
+                response.get('totalCount') / params.get('pageSize')
+            )
+            # recursive get and extend response values
+            for i in range(2, num_pages + 1):
+                # update page
+                params['page'] = i
+                response['values'].extend(
+                    self.get(path=path, params=params).get('values')
+                )
+        # return elements
+        return response
 
     def get_addresses(self, address: str = None, extension: str = None, \
             **kwargs):

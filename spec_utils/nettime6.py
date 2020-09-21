@@ -884,9 +884,81 @@ class Client:
 
         return self.save_element(**data)
 
+    def get_timetypes_ids(self):
+        """
+        Gets and returns a list of ids of timetypes with a nettime client.
+        """
 
+        # get nt resposne
+        nt_timetypes = self.get_elements("Incidencia").get('items')
 
-        
+        # parse response to list
+        timetypes = []
+        for timetype in nt_timetypes:
+            timetypes.append({"id": timetype.get("id")})
 
+        return timetypes
 
+    def get_readers_ids(self):
+        """
+        Gets and returns a list of ids of readers with a nettime client.
+        """
 
+        # get nt resposne
+        nt_readers = self.get_elements("Lector").get('items')
+
+        # parse response to list
+        readers = []
+        for reader in nt_readers:
+            readers.append({"id": reader.get("id")})
+
+        return readers
+
+    def import_employee(self, structure: dict, **kwargs):
+        """
+        Create an employe from a structure. Update if exists, create if not.
+        """
+
+        # employee structure
+        data = {"container": "Persona"}
+
+        # search employee by nif
+        query = Query(
+            fields=["id", "nif"],
+            filterExp=f'this.nif = "{structure.get("nif")}"',
+        )
+        results = self.get_employees(query=query)
+
+        # safety only
+        if results.get('total') > 1:
+            raise ValueError("Más de un empleado con el mismo DNI.")
+
+        # update employee
+        if results.get('total') == 1:
+            # set element
+            data["elements"] = [results.get('items')[0].get('id')]
+            # empty data
+            dataObj = {}
+
+        # create element
+        else:
+            # create form and assign all timetypes and readers
+            dataObj = self.get_create_form(container="Persona")
+
+            # assign all if not in structure
+            if not structure.get('TimeTypesEmployee'):
+                dataObj.update({"TimeTypesEmployee": self.get_timetypes_ids()})
+            
+            # assign all if not in structure
+            if not structure.get('Readers'):
+                dataObj.update({"Readers": self.get_readers_ids()})
+            
+            # delete elements kw
+            if data.get("elements", None):
+                del data["elements"]
+
+        dataObj.update(structure)
+        data["dataObj"] = dataObj
+
+        # save employee
+        return self.save_element(**data)
