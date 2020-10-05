@@ -7,8 +7,6 @@ import datetime
 import re
 import math
 
-#import nettime6 as nt6
-
 class JsonObject:
     """ Convert a dict['element'] for access like object.property. """
 
@@ -135,7 +133,7 @@ class Client:
 
     def get(self, path: str, params: dict = None, **kwargs):
         """
-        Sends a GET request to nettime url.
+        Sends a GET request to visma url.
 
         :param path: path to add to URL for the new :class:`Request` object.
         :param params: (optional) Dictionary, list of tuples or bytes to send
@@ -176,7 +174,7 @@ class Client:
 
     def post(self, path, data=None, json=None, **kwargs):
         """
-        Sends a POST request to nettime url.
+        Sends a POST request to visma url.
 
         :param url: URL for the new :class:`Request` object.
         :param data: (optional) Dictionary, list of tuples, bytes, or file-like
@@ -504,8 +502,60 @@ class Client:
         # request.get -> json
         return self.get(path=path, params=params)
 
-    def post_pay_elements(self, **kwargs):
-        pass
+    def post_pay_elements(self, values: list, **kwargs):
+        """
+        Use the endpoint to post recived payment/s data.
+
+        :param values: list of dict for send to api. Each dict must be like:
+            {
+                "employeeExternalId": "string",         
+                # Legajo del empleado (Obligatorio) 
+                "periodFrom": "string",                 
+                # Descripcion Periodo (opcional) para retroactividad
+                "periodTo": "string",                   
+                #  Descripcion Periodo  (opcional) para retroactividad
+                "reason": "string",                     
+                # razón (descriptivo)   (opcional)
+                "reasonTypeExternalId": "string",       
+                # id tipo razon (opcional)
+                "action": 0,                            
+                # 0 inserta, 1 Actualiza 
+                "retroactive": Boolean,                 
+                # true o false (retroactividad)
+                "journalModelId": 0,                    
+                # id modelo de asiento  (opcional)
+                "journalModelStructureId1": 0,          
+                # id estructura 1 del modelo de asiento  (opcional)
+                "journalModelStructureId2": 0,          
+                # id estructura 2 del modelo de asiento  (opcional)
+                "journalModelStructureId3": 0,          
+                # id estructura 3 del modelo de asiento  (opcional)
+                "conceptExternalId": "string",          
+                # Codigo externo del concepto (Obligatorio)
+                "parameterId": 0,                       
+                # código interno del del parámetro (Obligatorio)
+                "dateFrom": "2020-10-01T18:23:50.691Z", 
+                # fecha de vigencia desde (opcional) 
+                "dateTo": "2020-10-01T18:23:50.691Z",   
+                # fecha de vigencia hasta  (opcional)
+                "value": 0                              
+                # valor de la novedad (Obligatorio)
+            }
+        
+        :return: json object
+        :rtype: json
+        """
+
+        # path prepare
+        path = '/WebApi/pay-elements/individual'
+
+        # json prepare
+        _json = {
+            "values": values
+        }
+
+        # request.get -> json
+        return self.post(path=path, json=_json, **kwargs)
 
     def get_payments(self, extension: str, **kwargs):
 
@@ -522,7 +572,7 @@ class Client:
         # request.get -> json
         return self.get(path=path, params=params)
 
-    def get_payments(self, extension: str, **kwargs):
+    def get_payrolls(self, extension: str, **kwargs):
 
         # path prepare
         path = f'/WebApi/payrolls/{extension}'
@@ -722,3 +772,4 @@ class Client:
 
         # request.get -> json
         return self.get(path='/WebApi/version')
+

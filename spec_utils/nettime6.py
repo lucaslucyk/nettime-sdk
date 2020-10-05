@@ -66,7 +66,16 @@ class Query:
 class Client:
 
     def __init__(self, url: str, username: str, pwd: str, *args, **kwargs):
-        """ Create a conection with nettime app using recived parameters. """
+        """
+        Create a conection with nettime app using recived parameters.
+
+        :param url: Nettime url. Eg https://server-name:8091/.
+        :param username: Nettime username.
+        :param pwd: Nettime password.
+
+        :return: :class:`Client` object
+        :rtype: Client
+        """
 
         super().__init__(*args, **kwargs)
         self.client_url = urlparse(url)
@@ -109,7 +118,7 @@ class Client:
         return bool(self.headers) and bool(self.access_token)
 
     def connect(self):
-        """ Connect the client to get access_token and headers values. """
+        """ Connect the client to set access_token and headers values. """
 
         if self.is_connected:
             return
@@ -152,8 +161,8 @@ class Client:
         :param params: (optional) Dictionary, list of tuples or bytes to send
             in the query string for the :class:`Request`.
         :param \*\*kwargs: Optional arguments that ``request`` takes.
-        :return: :class:`dict` object
-        :rtype: dict
+        :return: json object
+        :rtype: json
         """
 
         if not self.is_connected:
@@ -192,8 +201,8 @@ class Client:
         :param json: (optional) json data to send in the body of the 
             :class:`Request`.
         :param \*\*kwargs: Optional arguments that ``request`` takes.
-        :return: :class:`dict` object
-        :rtype: dict
+        :return: json object
+        :rtype: json
         """
 
         # wait active conection
@@ -238,7 +247,7 @@ class Client:
         }
 
     def disconnect(self):
-        """ Disconnect a client to lock the access_token. """
+        """ Disconnect a client to clean the access_token. """
 
         if not self.is_connected:
             return
@@ -262,8 +271,13 @@ class Client:
 
     def get_days_offset(self, days: list):
         """ 
-        Convert a list of datetime.date or str format to int offset with \
+        Convert a list of datetime.date or str format to int offset with 
         self.setting.firstDate.
+
+        :param days: list of datetime.date or formatted str to get int offsets.
+        
+        :return: :class:`list` object
+        :rtype: list
         """
 
         # wait active conection
@@ -289,10 +303,15 @@ class Client:
 
         return days_numbers
 
-    def get_days_from_ofsets(self, ofsets: list):
+    def get_days_from_offsets(self, offsets: list):
         """ 
         Convert a list of int offset to datetime.date or str format with \
         self.setting.firstDate.
+
+        :param offsets: list of int to get dates.
+        
+        :return: :class:`datetime.date` object
+        :rtype: datetime.date
         """
 
         # wait active conection
@@ -315,7 +334,15 @@ class Client:
         return dates
         
     def get_fields(self, container: str, filterFields: bool = False):
-        """ Get all fields of an specific container. """
+        """
+        Get all fields of an specific container.
+        
+        :param container: (str) Name of nettime container.
+        :param filterFields: (bool) True if needs ignore expression fields.
+        
+        :return: json object
+        :rtype: json
+        """
 
         # prepare task parameters
         params = {
@@ -328,7 +355,18 @@ class Client:
     
     def get_elements(self, container: str, query = Query(["id", "name"]), \
             *args, **kwargs):
-        """ Get elements of an specific container for general propose. """
+        """
+        Get elements of an specific container for general propose.
+        
+        :param container: (str) Name of nettime container.
+        :param query: (Query) Fields you want to get. Must be an instanceb of
+            nettime6.Query. See more information in the class documentation.
+
+        :param \*\*kwargs: Optional arguments that ``request`` takes.
+
+        :return: json object
+        :rtype: json
+        """
 
         # prepare task parameters
         params = {
@@ -351,7 +389,17 @@ class Client:
         return json_response
 
     def get_employees(self, query=Query(["id", "nif"]), *args, **kwargs):
-        """ Get employees from nettime. """
+        """
+        Get employees from nettime. 
+        
+        :param query: (Query) Fields you want to get. Must be an instanceb of
+            nettime6.Query. See more information in the class documentation.
+        :param \*args: Optional arguments that ``request`` takes.
+        :param \*\*kwargs: Optional arguments that ``request`` takes.
+
+        :return: json object
+        :rtype: json
+        """
 
         # use get general propose
         employees = self.get_elements(
@@ -962,3 +1010,4 @@ class Client:
 
         # save employee
         return self.save_element(**data)
+
