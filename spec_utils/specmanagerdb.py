@@ -39,6 +39,34 @@ class Client:
     def table_names(self):
         return self.engine.table_names()
 
+    def query_execute(self, query: str, to_records: bool = False, **kwargs):
+        """
+        Open/close connection and Execute a custom query and return result.
+        """
+
+        # create connection and execute query
+        connection = self.engine.execute(query, **kwargs)
+
+        # if query doesn't return rows, return bool
+        if not connection.returns_rows:
+            # safety only
+            connection.close()
+            # return affected rows
+            return connection.rowcount
+        
+        # create dataframe with result
+        df = pd.DataFrame(connection.fetchall(), columns=connection.keys())
+        
+        # close connection --safety--
+        connection.close()
+
+        # return json format
+        if to_records:
+            return df.to_dict('records')
+
+        # return pandas DataFrame
+        return df
+
     def read_sql_query(self, query: str, to_records: bool = False):
         """ Execute query with active engine and return pandas dataframe. """
 
@@ -137,4 +165,26 @@ class Client:
             lips_name=lips_name,
             **kwargs
         )
-        
+    
+    def sync_results(self, from_table: str, marc_col: str, \
+            auto_update: bool = True, **kwargs):
+        """
+        Get rows from table with marc_col = 0 (False).
+        After of get rows, update marc_col to 1 (True).
+        """
+
+        # get rows
+        results = self.get_from_table(
+            table=from_table,
+            where=f'{marc_col} = 0',
+            **kwargs
+        )
+
+        if auto_update:
+            # query prepare and execute
+            qs = self.query_execute(
+                f'UPDATE {from_table} SET {marc_col} = 1 WHERE {marc_col} = 0;'
+            )
+
+        # return rows
+        return results

@@ -785,7 +785,7 @@ class Client:
             fields or results. The order of the values does matter.
         :param dateIni: Start day where you want to calculate.
         :param dateIni: End day where you want to calculate.
-        :param interfilters: (Optional) If you use the dimension "system", 
+        :param interfilters: (Optional) If you use the "system" dimension, 
             specify the ids of the results in this parameter.
         :param filters: (Optional) Nettime compatible filter expression.
         :param ids: (Optional) List of employee ids in case you want to filter.
