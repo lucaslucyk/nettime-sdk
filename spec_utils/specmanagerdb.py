@@ -82,7 +82,7 @@ class Client:
     def insert_values(self, df: pd.DataFrame, table: str, schema: str = None, \
             if_exists: str = 'append', index: bool = False, \
             index_label: str = None, chunksize: int = None, \
-            method: str = 'multi', from_records: bool = False):
+            method: str = None, from_records: bool = False):
         """ Insert a dataframe in database with recived data. """
         
         if from_records and not isinstance(df, pd.DataFrame):
