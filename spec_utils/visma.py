@@ -30,7 +30,7 @@ class Client:
     class Authentication:
         def __init__(self, **kwargs):
             self.access_token = kwargs.get('access_token')
-            self.token_type = kwargs.get('token_type', '').capitalize()
+            self.token_type = kwargs.get('token_type', 'Bearer').capitalize()
             self.expires = self.get_expires(kwargs.get('expires_in'))
 
             self.rol = kwargs.get('rol')
@@ -156,7 +156,7 @@ class Client:
             "url": urljoin(self.client_url.geturl(), path),
             "params": params,
             "headers": self.headers,
-            "timeout": kwargs.get("timeout", 10),
+            "timeout": kwargs.get("timeout", 20),
         }
 
         # consulting nettime
@@ -200,7 +200,7 @@ class Client:
             "data": data,
             "json": json,
             "headers": self.headers,
-            "timeout": kwargs.get("timeout", 10),
+            "timeout": kwargs.get("timeout", 20),
         }
 
         # consulting nettime
