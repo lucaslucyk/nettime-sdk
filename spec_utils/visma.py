@@ -157,6 +157,7 @@ class Client:
             "params": params,
             "headers": self.headers,
             "timeout": kwargs.get("timeout", 20),
+            "stream": kwargs.get("stream", False)
         }
 
         # consulting nettime
@@ -168,6 +169,11 @@ class Client:
 
         # to json -> json
         try:
+            # if request is stream type, return all response
+            if kwargs.get("stream"):
+                return response
+
+            # return json response
             return response.json()
         except:
             return {}

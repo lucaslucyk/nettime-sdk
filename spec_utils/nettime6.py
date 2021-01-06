@@ -174,6 +174,7 @@ class Client:
             "params": params,
             "headers": self.headers,
             "timeout": kwargs.get("timeout", 10),
+            "stream": kwargs.get("stream", False)
         }
 
         # consulting nettime
@@ -187,6 +188,10 @@ class Client:
         # raise if was an error
         if response.status_code not in range(200, 300):
             raise ConnectionError(response.text)
+        
+        # if request is stream type, return all response
+        if kwargs.get("stream"):
+            return response
 
         # to json
         return response.json()
@@ -215,7 +220,7 @@ class Client:
             "data": data,
             "json": json,
             "headers": self.headers,
-            "timeout": kwargs.get("timeout", 10),
+            "timeout": kwargs.get("timeout", 10)
         }
 
         # consulting nettime
@@ -231,7 +236,15 @@ class Client:
             raise ConnectionError(response.text)
 
         # to json -> json
-        return response.json()
+        json_response = response.json()
+
+        # get task results if is generated
+        if isinstance(json_response, dict) and \
+                json_response.get('taskId', None):
+            json_response = self.get_task_response(json_response.get('taskId'))
+
+        # return json response
+        return json_response
 
     def get_headers(self):
         """ Return headers for a specific conection """
@@ -332,6 +345,21 @@ class Client:
             dates.append(date.isoformat())
         
         return dates
+
+    def get_app_resource(self, name: str, **kwargs):
+        """
+        Get a resource from 'AppResources' folder. You can set export path in
+        nettime folder and after use this method to get export content.
+
+        :param name: str with name of resource -including extension-.
+        :param **kwargs: Optional arguments that ``request`` takes.
+
+        :return: :class:`dict` object or stream if 'stream' in kwargs
+        :rtype: json or stream
+        """
+
+        # request.get
+        return self.get(path=f'/AppResources/{name}', **kwargs)
         
     def get_fields(self, container: str, filterFields: bool = False):
         """
