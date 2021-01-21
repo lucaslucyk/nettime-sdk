@@ -26,6 +26,35 @@ class Client:
         def ft_id(self):
             """ Return the id of the first available tenant. """
             return getattr(self.tenants[0], 'Id', None)
+
+        def get_tenant_id(self, _filters: dict):
+            """
+            Get tenant ID from tenant name. Use to use specific tenant.
+            
+            :param _filters: Dict with parameters to eval. Eg.
+                {"DBName": "Name_Of_Database", "TenantName": "Tenant_Test"}.
+            :param tenant_name: (optional) Str with name of tenant.
+            :param \*\*kwargs: Optional arguments to filter.
+            :return: :class:`int` object
+            :rtype: int
+            """
+            
+            # view all tenants
+            for _t in self.tenants:
+                
+                # matches to eval
+                _m = []
+
+                # eval all key: value parameters
+                for k, v in _filters.items():    
+                    _m.append(True if getattr(_t, k, None) == v else False)
+
+                # return tenant if all evals match
+                if all(_m):
+                    return getattr(_t, 'Id', None)
+            
+            # if None matche -or not all-
+            return None
     
     class Authentication:
         def __init__(self, **kwargs):
@@ -57,8 +86,6 @@ class Client:
     def __init__(self, url: str, username: str, pwd: str, *args, **kwargs):
         """ Create a conection with visma app using recived parameters. """
 
-        #super().__init__(*args, **kwargs)
-
         self.client_url = urlparse(url)
         self.username = username
         self.pwd = b64encode(pwd.encode('utf-8'))
@@ -75,6 +102,9 @@ class Client:
             user_info=self.get(path='/Admin/account/user-info'),
             roles=self.get(path='/Admin/account/roles')
         )
+
+        # dict to filter tenant
+        self.tenant_filter = kwargs.get('tenant_filter', None)
 
     def __str__(self):
         return '{}{} en {}'.format(
@@ -113,7 +143,18 @@ class Client:
 
         # tenant obtained
         if self.account:
-            data["X-RAET-Tenant-Id"] = getattr(self.account, 'ft_id', None)
+            if self.tenant_filter:
+                # get id with filter dict
+                data["X-RAET-Tenant-Id"] = self.account.get_tenant_id(
+                    _filters=self.tenant_filter
+                )
+            else:
+                # get first available tenant
+                data["X-RAET-Tenant-Id"] = getattr(
+                    self.account,
+                    'ft_id',
+                    None
+                )
 
         return data
     

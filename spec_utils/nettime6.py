@@ -233,7 +233,7 @@ class Client:
 
         # raise if was an error
         if response.status_code not in range(200, 300):
-            raise ConnectionError(response.text)
+            raise ConnectionError(response.status_code, response.text)
 
         # to json -> json
         json_response = response.json()
