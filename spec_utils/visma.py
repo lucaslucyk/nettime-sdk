@@ -1,5 +1,5 @@
-from string import digits as str_digits, ascii_lowercase as str_letters
-from random import choice as r_choice
+#from string import digits as str_digits, ascii_lowercase as str_letters
+#from random import choice as r_choice
 from urllib.parse import urlparse, urlencode, urljoin
 from base64 import b64encode, b64decode
 import requests

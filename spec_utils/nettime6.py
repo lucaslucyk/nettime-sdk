@@ -183,7 +183,7 @@ class Client:
         # if session was closed, reconect client and try again
         if response.status_code == 401:
             self.reconnect()
-            return self.post(path, params=params, **kwargs)
+            return self.get(path, params=params, **kwargs)
 
         # raise if was an error
         if response.status_code not in range(200, 300):
