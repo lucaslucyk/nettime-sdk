@@ -9,30 +9,6 @@ import datetime as dt
 
 class Client:
 
-    class Authentication:
-        def __init__(self, **kwargs):
-            self.access_token = kwargs.get('access_token')
-            self.token_type = kwargs.get('token_type', 'Bearer').capitalize()
-            self.expires = self.get_expires(kwargs.get('expires_in'))
-
-        def __str__(self):
-            return f'{self.token_type} {self.access_token}'
-
-        def __bool__(self):
-            return self.is_alive
-
-        def get_expires(self, expires_in: int) -> dt.datetime:
-            now = dt.datetime.now()
-            return now + dt.timedelta(seconds=expires_in - 10)
-
-        @property
-        def is_alive(self):
-            return self.expires > dt.datetime.now()
-
-        @property
-        def is_expired(self):
-            return not self.is_alive
-
     def __init__(self, url: str, apikey: str, *args, **kwargs):
         """
         Create a conection with Certronic API using recived parameters.
