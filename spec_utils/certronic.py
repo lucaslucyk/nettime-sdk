@@ -17,9 +17,8 @@ class Client:
         self.client_url = urlparse(url)
         self.apikey = b64encode(apikey.encode('utf-8'))
 
-
     def __str__(self):
-        return f'Client for {self.client_url.geturl()}'
+        return f'Client for {self.client_fullpath}'
 
     def __repr__(self):
         return "{}(url='{}', apikey='{}')".format(
@@ -35,6 +34,10 @@ class Client:
         return
 
     @property
+    def client_fullpath(self):
+        return urljoin(self.client_url.geturl(), self.client_url.path)
+
+    @property
     def headers(self):
         """ Get headers of the client with current data """
 
@@ -42,7 +45,7 @@ class Client:
         data = {
             "Accept": "application/json",
             "Accept-Encoding": "gzip,deflate",
-            "API-Key": b64decode(self.apikey).decode('utf-8')
+            "apikey": b64decode(self.apikey).decode('utf-8')
         }
 
         return data
@@ -61,7 +64,7 @@ class Client:
 
         # query prepare
         query = {
-            "url": urljoin(self.client_url.geturl(), path),
+            "url": urljoin(self.client_fullpath, path),
             "params": params,
             "headers": self.headers,
             "timeout": kwargs.get("timeout", 20),
@@ -86,8 +89,8 @@ class Client:
         except:
             return {}
 
-    def post(self, path, params: dict = None, data: dict = None,
-             json: dict = None, **kwargs):
+    def post(self, path, params: dict = None, data: dict = None, \
+            json: dict = None, **kwargs):
         """
         Sends a POST request to Certronic url.
 
@@ -104,7 +107,7 @@ class Client:
 
         # query prepare
         query = {
-            "url": urljoin(self.client_url.geturl(), path),
+            "url": urljoin(self.client_fullpath, path),
             "params": params,
             "data": data,
             "json": json,
@@ -126,7 +129,7 @@ class Client:
             return {}
 
     def get_employees(self, page: int = 1, pageSize: int = 50, \
-            updatedFrom: dt.datetime = None, includeDocuments: bool = False, \
+            updatedFrom: dt.datetime = None, includeDocuments: bool = None, \
             customFields: list = [], **kwargs):
         """
         Get employees from Certronic API with self.get().
@@ -144,16 +147,19 @@ class Client:
         """
 
         # path prepare
-        path = f'/employees'
+        path = f'employees.php'
 
         # datetime to str
         if isinstance(updatedFrom, dt.datetime):
-            updatedFrom = updatedFrom.strftime("%Y%m%d%H%M%S")
+            updatedFrom = updatedFrom.strftime("%Y-%m-%d %H:%M:%S")
+
+        # foce None if is False
+        if not includeDocuments:
+            includeDocuments = None
 
         # parameters prepare
         params = {
             "updatedFrom": updatedFrom,
-            "fromHistory": fromHistory,
             "includeDocuments": includeDocuments,
             "customFields": customFields,
             "pageSize": pageSize,
@@ -173,7 +179,7 @@ class Client:
                 "id": 3456,
                 "center": "BA01",
                 "ss": "12-12345678-9",
-                "action": "Entrance",
+                "action": "in/out",
                 "datetime": "2020-02-11T12:39:00.000Z"
             }]
         :param \*\*kwargs: Optional arguments that ``request`` takes.
@@ -182,7 +188,7 @@ class Client:
         """
 
         # path prepare
-        path = f'/clockings'
+        path = f'clocking.php'
 
         # 1 dict employee by default
         return self.post(path=path, json=clockings, **kwargs)
