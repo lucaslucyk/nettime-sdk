@@ -8,101 +8,45 @@ import datetime
 __specmanager__ = "5.0.0r17013"
 
 class Client:
-
-    class Authentication:
-        def __init__(self, **kwargs):
-            self.access_token = kwargs.get('access_token')
-            self.token_type = kwargs.get('token_type', 'Bearer').capitalize()
-            self.expires = self.get_expires(kwargs.get('expires_in'))
-
-        def __str__(self):
-            return f'{self.token_type} {self.access_token}'
-
-        def __bool__(self):
-            return self.is_alive
-
-        def get_expires(self, expires_in: int) -> datetime.datetime:
-            now = datetime.datetime.now()
-            return now + datetime.timedelta(seconds=expires_in - 10)
-
-        @property
-        def is_alive(self):
-            return self.expires > datetime.datetime.now()
-
-        @property
-        def is_expired(self):
-            return not self.is_alive
-
-    def __init__(self, url: str, username: str = "Admin", pwd: str = "spec", \
-            *args, **kwargs):
+    
+    def __init__(self, url: str, apikey: str, *args, **kwargs):
         """
-        Create a conection with SPEC Manager API using recived parameters.
+        Create a conection with Certronic API using recived parameters.
         """
-
-        # TODO: Implement this
 
         self.client_url = urlparse(url)
-        self.username = username
-        self.pwd = b64encode(pwd.encode('utf-8'))
-
-        self.authentication = None
-
-        # connect client and set authentication object automatically
-        self.connect()
+        self.apikey = b64encode(apikey.encode('utf-8'))
 
     def __str__(self):
-        return '{} connected to {}'.format(
-            self.username,
-            self.client_url.geturl()
-        )
+        return f'Client for {self.client_fullpath}'
 
     def __repr__(self):
-        return "{}(url='{}', username='{}', pwd='{}')".format(
+        return "{}(url='{}', apikey='{}')".format(
             self.__class__.__name__,
             self.client_url.geturl(),
-            self.username,
-            b64decode(self.pwd).decode('utf-8'),
+            b64decode(self.apikey).decode('utf-8'),
         )
 
     def __enter__(self, *args, **kwargs):
         return self
 
     def __exit__(self, *args, **kwargs):
-        return self.disconnect()
-        
+        return
+
+    @property
+    def client_fullpath(self):
+        return urljoin(self.client_url.geturl(), self.client_url.path)
+
     @property
     def headers(self):
         """ Get headers of the client with current data """
 
-        # TODO: Add access_token when is implemented
-
         # empty headers initial
-        data = {
+        return {
             "Accept": "application/json",
             "Accept-Encoding": "gzip,deflate",
+            "apikey": b64decode(self.apikey).decode('utf-8')
         }
-
-        # logged user
-        # if self.authentication:
-        #     data["Authorization"] = str(self.authentication)
-
-        return data
-
-    @property
-    def is_connected(self):
-        """ Informs if client has headers and access_token. """
-
-        return bool(self.authentication)
-
-    @property
-    def session_expired(self):
-        """
-        Informs if the session has expired and it is necessary to reconnect.
-        """
-        # TODO: Implement this
-
-        # return getattr(self.authentication, 'is_expired', None)
-        return False
 
     def get(self, path: str, params: dict = None, **kwargs):
         """
@@ -115,14 +59,6 @@ class Client:
         :return: :class:`dict` object
         :rtype: dict
         """
-
-        # check if session has expired
-        if self.session_expired:
-            self.reconnect()
-
-        # safety only
-        if not self.is_connected and not kwargs.get('force', None):
-            raise ConnectionError("Cliente desconectado. Utilice connect().")
 
         # query prepare
         query = {
@@ -167,14 +103,6 @@ class Client:
         :rtype: dict
         """
 
-        # check if session has expired
-        if self.session_expired:
-            self.reconnect()
-
-        # wait active conection
-        if not self.is_connected and not kwargs.get('force', None):
-            raise ConnectionError("Cliente desconectado. Utilice connect().")
-
         # query prepare
         query = {
             "url": urljoin(self.client_url.geturl(), path),
@@ -197,24 +125,6 @@ class Client:
             return response.json()
         except:
             return {}
-
-    def connect(self):
-        """ Connect the client to get access_token and headers values. """
-        # TODO: Implement in SPEC Manager API
-
-        self.authentication = True
-
-    def disconnect(self):
-        """ Disconnect the client if is connected. """
-        # TODO: Implement in SPEC Manager API
-
-        self.authentication = False
-
-    def reconnect(self):
-        """ Reconnect client cleaning headers and access_token. """
-        # TODO: Implement in SPEC Manager API
-
-        self.authentication = True
 
     def get_clockings(self, _type: str, _from: datetime.datetime, \
             _to: datetime.datetime, fromHistory: bool = False, \
@@ -302,7 +212,8 @@ class Client:
 
     def post_employee(self, _type: str, code: int, nif: str, ss: str, \
             lastName: str, firstName: str, companyCode: str, \
-            companyName: str, centers: list = [], **kwargs):
+            companyName: str, centers: list = [], optionalData: list = [], \
+            **kwargs):
         """
         Send employee to SM API with self.post() passing _type and 
         recived parameters.
@@ -324,6 +235,14 @@ class Client:
             }, {
                 "center": "ES",
                 "dueDate": datetime.date(2021, 12, 31)
+            }]
+        :param optionalData: list of dict with opcionals data to assign. E.g.
+            [{
+                "level": 1,
+                "value": "some-value-to-data-1",
+            },{
+                "level": 8,
+                "value": "some-value-to-data-8",
             }]
         :param \*\*kwargs: Optional arguments that ``request`` takes.
         :return: :class:`json` object
@@ -349,6 +268,11 @@ class Client:
             params["centers"] = ','.join([
                 f'{_c.get("center")}:{_c.get("dueDate").strftime("%Y%m%d")}' \
                     for _c in centers
+            ])
+
+        if optionalData:
+            params["optionalData"] = ','.join([
+                f'{_od.get("level")}:{_od.get("value")}'for _od in optionalData
             ])
 
         # request.get -> json
@@ -383,7 +307,8 @@ class Client:
 
     def post_employee_encae(self, code: int, nif: str, ss: str, \
             lastName: str, firstName: str, companyCode: str, \
-            companyName: str, centers: list = [], **kwargs):
+            companyName: str, centers: list = [], optionalData: list = [], \
+            **kwargs):
         """
         Send encae employee to SM API with self.post_employee() and 
         recived parameters.
@@ -403,6 +328,14 @@ class Client:
                 "center": "ES",
                 "dueDate": datetime.date(2021, 12, 31)
             }]
+        :param optionalData: list of dict with opcionals data to assign. E.g.
+            [{
+                "level": 1,
+                "value": "some-value-to-data-1",
+            },{
+                "level": 8,
+                "value": "some-value-to-data-8",
+            }]
         :param \*\*kwargs: Optional arguments that ``request`` takes.
         :return: :class:`json` object
         :rtype: json
@@ -418,7 +351,8 @@ class Client:
             "firstName": firstName,
             "companyCode": companyCode,
             "companyName": companyName,
-            "centers": centers
+            "centers": centers,
+            "optionalData": optionalData
         }
 
         # request.get -> json
