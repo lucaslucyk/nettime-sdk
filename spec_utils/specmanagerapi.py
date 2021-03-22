@@ -1,4 +1,4 @@
-from urllib.parse import urlparse, urlencode, urljoin
+from urllib.parse import urlparse, urlencode, urljoin, quote
 from base64 import b64encode, b64decode
 import requests
 import datetime
@@ -43,6 +43,7 @@ class Client:
 
         # empty headers initial
         return {
+            "Content-Type": "application/json;charset=UTF-8",
             "Accept": "application/json",
             "Accept-Encoding": "gzip,deflate",
             "apikey": b64decode(self.apikey).decode('utf-8')
@@ -63,7 +64,7 @@ class Client:
         # query prepare
         query = {
             "url": urljoin(self.client_url.geturl(), path),
-            "params": params,
+            "params": urlencode(params, quote_via=quote),
             "headers": self.headers,
             "timeout": kwargs.get("timeout", 20),
             "stream": kwargs.get("stream", False)
@@ -106,7 +107,7 @@ class Client:
         # query prepare
         query = {
             "url": urljoin(self.client_url.geturl(), path),
-            "params": params,
+            "params": urlencode(params, quote_via=quote),
             "data": data,
             "json": json,
             "headers": self.headers,
@@ -210,7 +211,7 @@ class Client:
         # request.get -> json
         return self.get_clockings(**params, **kwargs)
 
-    def post_employee(self, _type: str, code: int, nif: str, ss: str, \
+    def post_employee(self, _type: str, code: int, nif: str, \
             lastName: str, firstName: str, companyCode: str, \
             companyName: str, centers: list = [], optionalData: list = [], \
             **kwargs):
@@ -256,7 +257,6 @@ class Client:
         params = {
             "code": code,
             "nif": nif,
-            "ss": ss,
             "lastName": lastName,
             "firstName": firstName,
             "companyCode": companyCode,
@@ -305,7 +305,7 @@ class Client:
         # 1 dict employee by default
         return self.post_employee(**employeeData, **kwargs)
 
-    def post_employee_encae(self, code: int, nif: str, ss: str, \
+    def post_employee_encae(self, code: int, nif: str, \
             lastName: str, firstName: str, companyCode: str, \
             companyName: str, centers: list = [], optionalData: list = [], \
             **kwargs):
@@ -346,7 +346,6 @@ class Client:
             "_type": "encae",
             "code": code,
             "nif": nif,
-            "ss": ss,
             "lastName": lastName,
             "firstName": firstName,
             "companyCode": companyCode,
