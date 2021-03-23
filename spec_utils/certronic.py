@@ -2,8 +2,6 @@ from urllib.parse import urlparse, urlencode, urljoin
 from base64 import b64encode, b64decode
 import requests
 import datetime as dt
-# import re
-# import math
 
 #__certronic__ = "5.0.0r17013"
 
@@ -43,6 +41,7 @@ class Client:
 
         # empty headers initial
         data = {
+            "Content-Type": "application/json;charset=UTF-8",
             "Accept": "application/json",
             "Accept-Encoding": "gzip,deflate",
             "apikey": b64decode(self.apikey).decode('utf-8')

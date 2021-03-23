@@ -63,7 +63,7 @@ class Client:
 
         # query prepare
         query = {
-            "url": urljoin(self.client_url.geturl(), path),
+            "url": urljoin(self.client_fullpath, path),
             "params": urlencode(params, quote_via=quote),
             "headers": self.headers,
             "timeout": kwargs.get("timeout", 20),
@@ -106,7 +106,7 @@ class Client:
 
         # query prepare
         query = {
-            "url": urljoin(self.client_url.geturl(), path),
+            "url": urljoin(self.client_fullpath, path),
             "params": urlencode(params, quote_via=quote),
             "data": data,
             "json": json,
@@ -211,10 +211,10 @@ class Client:
         # request.get -> json
         return self.get_clockings(**params, **kwargs)
 
-    def post_employee(self, _type: str, code: int, nif: str, \
-            lastName: str, firstName: str, companyCode: str, \
-            companyName: str, centers: list = [], optionalData: list = [], \
-            **kwargs):
+    def post_employee(self, _type: str, code: int, nif: str, lastName: str, \
+            firstName: str, companyCode: str, companyName: str, \
+            comment: str = None, centers: list = [], optionalData: list = [], \
+            isActive: bool = None, **kwargs):
         """
         Send employee to SM API with self.post() passing _type and 
         recived parameters.
@@ -229,6 +229,7 @@ class Client:
         :param firstName: str with employee firstName field
         :param companyCode: str with company code (nif)
         :param companyName: str with company name
+        :param comment: str with comment to assign at current employee
         :param centers: list of dict with 'center' and 'dueDate' keys. E.g.
             [{
                 "center": "AR",
@@ -245,6 +246,7 @@ class Client:
                 "level": 8,
                 "value": "some-value-to-data-8",
             }]
+        :param isActive: boolean to high/down employee
         :param \*\*kwargs: Optional arguments that ``request`` takes.
         :return: :class:`json` object
         :rtype: json
@@ -259,6 +261,8 @@ class Client:
             "nif": nif,
             "lastName": lastName,
             "firstName": firstName,
+            "comment": comment,
+            "isActive": isActive,
             "companyCode": companyCode,
             "companyName": companyName,
         }
@@ -310,6 +314,7 @@ class Client:
             companyName: str, centers: list = [], optionalData: list = [], \
             **kwargs):
         """
+        -- DONT USE
         Send encae employee to SM API with self.post_employee() and 
         recived parameters.
 
