@@ -1,6 +1,9 @@
 # SPEC Utils
 SDKs to consume SPEC SA and third-party applications from Python
 
+## IMPORTANT!
+This project has been moved to [https://gitlab.com/spec-sa-ar/spec-utils](https://gitlab.com/spec-sa-ar/spec-utils).
+
 ## Install
 
 Can use: 
